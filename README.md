@@ -5,8 +5,6 @@
 ✍️ manual outline drawing,  
 🛠 and batch prefab configuration.
 
-[![Auto Mesh Collider Generation](https://img.youtube.com/vi/ZrX0ZoAVDn0/hqdefault.jpg)](https://www.youtube.com/watch?v=ZrX0ZoAVDn0)
-
 > ✅ Built with Odin Inspector  
 > ✅ Supports both algorithmic and manual mesh generation  
 > ✅ All modules can be used independently
