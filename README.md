@@ -31,11 +31,6 @@ https://github.com/user-attachments/assets/e4840d39-c845-424d-ace3-f5f83c73e188
 https://github.com/user-attachments/assets/662e35fc-51b7-4b02-90de-df26595698be
 
 
-
-![manual-draw](https://github.com/user-attachments/assets/23b4fcb7-6650-4e89-912b-775de6a5075c)
-![image](https://github.com/user-attachments/assets/5288205c-d1f6-4791-94ad-f718115696ab)
-![image](https://github.com/user-attachments/assets/f7aa8582-9a20-4713-bf42-5bedef77c5a4)
-
 ### 🔧 Quick Controls
 | Action            | Shortcut |
 |-------------------|----------|
