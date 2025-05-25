@@ -13,8 +13,8 @@
 
 ### 📦 ColliderMeshCreator
 Editor window for generating custom MeshColliders:
-- 🔹 Automatically from MeshFilter objects
-- 🔹 Or manually using `ManualOutlineDrawer` in the Scene view
+-  Automatically from MeshFilter objects
+-  Or manually using `ManualOutlineDrawer` in the Scene view
 
 **Features:**
 - Concavity, scale factor, and Y-threshold control  
@@ -29,7 +29,6 @@ Editor window for generating custom MeshColliders:
 https://github.com/user-attachments/assets/e4840d39-c845-424d-ace3-f5f83c73e188
 
 https://github.com/user-attachments/assets/662e35fc-51b7-4b02-90de-df26595698be
-
 
 ### 🔧 Quick Controls
 | Action            | Shortcut |
@@ -76,9 +75,9 @@ Efficient tool for setting up renderers and materials across prefabs and scene o
 👉 [View Release PrefabSetupEditor](https://github.com/SinlessDevil/ColliderMeshTool/releases/tag/prefab-setup-editor-v1.0.0)
 
 ## 🧰 Requirements
-- Unity **2021.3+**
-- ✅ [Odin Inspector](https://odininspector.com/) (Required)
-- ✅ [ConcaveHull](https://github.com/SinlessDevil/EcsStickmanSurvivors/releases/tag/ConcaveHull-v1.0.0) (for mesh generation)
+- Unity **2023.3+**
+- [Odin Inspector](https://odininspector.com/) (Required)
+- [ConcaveHull](https://github.com/SinlessDevil/EcsStickmanSurvivors/releases/tag/ConcaveHull-v1.0.0) (for mesh generation)
 
 ## 🚀 Installation
 1. Download the `.unitypackage` from [Releases](https://github.com/SinlessDevil/ColliderMeshTool/releases)
