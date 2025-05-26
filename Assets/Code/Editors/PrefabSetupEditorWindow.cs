@@ -13,166 +13,159 @@ namespace Code.Editors
     public class PrefabSetupEditorWindow : OdinEditorWindow
     {
         [MenuItem("Tools/Prefab Batch Editor Window")]
-        private static void OpenWindow()
-        {
-            GetWindow<PrefabSetupEditorWindow>().Show();
-        }
+        private static void OpenWindow() => GetWindow<PrefabSetupEditorWindow>().Show();
 
-        [BoxGroup("Root Object")] 
+        [BoxGroup("Root Object")]
         [LabelText("Target Prefab or Scene Object")]
-        [SerializeField]
-        private GameObject _rootObject;
-        
-        [BoxGroup("Set Material To Children")] 
-        [LabelText("Target Material")]
-        [SerializeField]
-        private Material _targetMaterial;
+        [SerializeField] private GameObject _rootObject;
 
-        [BoxGroup("Set Material To Children")] 
-        [Space] 
+        // -------------------- Material Setup --------------------
+
+        [BoxGroup("Set Material To Children")]
+        [LabelText("Target Material")]
+        [SerializeField] private Material _targetMaterial;
+
+        [BoxGroup("Set Material To Children")]
+        [Space]
         [LabelText("Override All Material Slots")]
-        [SerializeField]
-        private bool _overrideAllSlots = true;
+        [SerializeField] private bool _overrideAllSlots = true;
 
         [FormerlySerializedAs("TargetMaterialIndex")]
         [BoxGroup("Set Material To Children")]
         [ShowIf("@!_overrideAllSlots")]
-        [LabelText("Target Material Slot Index")]
-        [MinValue(0)]
-        [SerializeField]
-        private int _targetMaterialIndex = 0;
+        [LabelText("Target Material Slot Index"), MinValue(0)]
+        [SerializeField] private int _targetMaterialIndex = 0;
 
         [BoxGroup("Set Material To Children")]
         [Button(ButtonSizes.Large)]
         [GUIColor(0.3f, 0.8f, 1f)]
         private void ApplyMaterialToChildren()
         {
-            if (_targetMaterial == null || _rootObject == null)
-            {
-                Debug.LogError("<color=red>Please assign both a material and a root object.</color>");
+            if (!ValidateRootAndMaterial()) 
                 return;
-            }
 
-            int count = 0;
+            Renderer[] renderers = GetAllRenderers();
+            foreach (Renderer renderer in renderers)
+                ReplaceMaterial(renderer);
+
+            Debug.Log($"<color=green>Replaced materials in {renderers.Length} renderers under '{_rootObject.name}'.</color>");
+        }
+
+        private bool ValidateRootAndMaterial()
+        {
+            if (_rootObject != null && _targetMaterial != null) 
+                return true;
+            
+            Debug.LogError("<color=red>Assign both a Root Object and Material.</color>");
+            return false;
+        }
+
+        private Renderer[] GetAllRenderers()
+        {
             MeshRenderer[] meshRenderers = _rootObject.GetComponentsInChildren<MeshRenderer>(true);
             SkinnedMeshRenderer[] skinnedRenderers = _rootObject.GetComponentsInChildren<SkinnedMeshRenderer>(true);
-
-            foreach (Renderer renderer in meshRenderers.Cast<Renderer>().Concat(skinnedRenderers))
-            {
-                Material[] mats = renderer.sharedMaterials;
-
-                if (_overrideAllSlots)
-                {
-                    for (int i = 0; i < mats.Length; i++)
-                    {
-                        mats[i] = _targetMaterial;
-                    }
-                }
-                else if (_targetMaterialIndex < mats.Length)
-                {
-                    mats[_targetMaterialIndex] = _targetMaterial;
-                }
-
-                renderer.sharedMaterials = mats;
-                count++;
-            }
-
-            Debug.Log($"<color=green>Replaced materials in {count} renderers under '{_rootObject.name}'.</color>");
+            return meshRenderers.Cast<Renderer>().Concat(skinnedRenderers).ToArray();
         }
+
+        private void ReplaceMaterial(Renderer renderer)
+        {
+            Material[] materials = renderer.sharedMaterials;
+            if (_overrideAllSlots)
+            {
+                for (int i = 0; i < materials.Length; i++)
+                    materials[i] = _targetMaterial;
+            }
+            else if (_targetMaterialIndex < materials.Length)
+            {
+                materials[_targetMaterialIndex] = _targetMaterial;
+            }
+            renderer.sharedMaterials = materials;
+        }
+
+        // -------------------- Random Material By Mesh Name --------------------
 
         [BoxGroup("Set Random Material for Matching Mesh")]
         [LabelText("Mesh Name Contains")]
-        [SerializeField]
-        private string _meshNameContains;
-        
+        [SerializeField] private string _meshNameContains;
+
         [BoxGroup("Set Random Material for Matching Mesh")]
         [LabelText("Possible Materials")]
-        [SerializeField]
-        public Material[] _materialsToApply;
-        
+        [SerializeField] private Material[] _materialsToApply;
+
         [BoxGroup("Set Random Material for Matching Mesh")]
         [Button(ButtonSizes.Large)]
         [GUIColor(0.6f, 1f, 0.6f)]
         private void ApplyRandomMaterialToMatchingMeshNames()
         {
-            if (string.IsNullOrWhiteSpace(_meshNameContains) || _rootObject == null || 
-                _materialsToApply == null || _materialsToApply.Length == 0)
+            if (_rootObject == null || string.IsNullOrWhiteSpace(_meshNameContains) || _materialsToApply?.Length == 0)
             {
-                Debug.LogError("<color=red>Please assign a mesh name, root object, and at least one material.</color>");
+                Debug.LogError("<color=red>Assign mesh name filter, materials and root object.</color>");
                 return;
             }
 
             int count = 0;
             MeshFilter[] meshFilters = _rootObject.GetComponentsInChildren<MeshFilter>(true);
-            SkinnedMeshRenderer[] skinnedMeshes = _rootObject.GetComponentsInChildren<SkinnedMeshRenderer>(true);
-
-            foreach (MeshFilter meshFilter in meshFilters)
+            foreach (MeshFilter filter in meshFilters)
             {
-                if (meshFilter.sharedMesh == null || !meshFilter.sharedMesh.name.Contains(_meshNameContains)) 
+                if (filter.sharedMesh == null || !filter.sharedMesh.name.Contains(_meshNameContains))
                     continue;
-                
-                Renderer renderer = meshFilter.GetComponent<Renderer>();
-                if (renderer == null) 
-                    continue;
-                
+
+                Renderer renderer = filter.GetComponent<Renderer>();
+                if (renderer == null) continue;
+
                 ApplyRandomMaterialToRenderer(renderer);
                 count++;
             }
 
-            foreach (SkinnedMeshRenderer skinnedMeshRenderer in skinnedMeshes)
+            SkinnedMeshRenderer[] skinnedRenderers = _rootObject.GetComponentsInChildren<SkinnedMeshRenderer>(true);
+            foreach (SkinnedMeshRenderer skinned in skinnedRenderers)
             {
-                if (skinnedMeshRenderer.sharedMesh == null || 
-                    !skinnedMeshRenderer.sharedMesh.name.Contains(_meshNameContains)) 
+                if (skinned.sharedMesh == null || !skinned.sharedMesh.name.Contains(_meshNameContains))
                     continue;
-                
-                ApplyRandomMaterialToRenderer(skinnedMeshRenderer);
+
+                ApplyRandomMaterialToRenderer(skinned);
                 count++;
             }
 
-            Debug.Log($"<color=green>Replaced materials in {count} renderers where mesh name contains '{_meshNameContains}'.</color>");
+            Debug.Log($"<color=green>Applied random materials to {count} renderers matching '{_meshNameContains}'.</color>");
         }
 
         private void ApplyRandomMaterialToRenderer(Renderer renderer)
         {
-            Material randomMaterial = _materialsToApply[Random.Range(0, _materialsToApply.Length)];
-            Material[] materials = renderer.sharedMaterials;
+            Material randomMat = _materialsToApply[Random.Range(0, _materialsToApply.Length)];
+            Material[] mats = renderer.sharedMaterials;
+            for (int i = 0; i < mats.Length; i++)
+                mats[i] = randomMat;
 
-            for (int i = 0; i < materials.Length; i++)
-                materials[i] = randomMaterial;
-
-            renderer.sharedMaterials = materials;
+            renderer.sharedMaterials = mats;
         }
+
+        // -------------------- Renderer Settings --------------------
 
         [BoxGroup("Configure MeshRenderer Settings")]
         [LabelText("Cast Shadows")]
-        [SerializeField]
-        private ShadowCastingMode _castShadows = ShadowCastingMode.On;
+        [SerializeField] private ShadowCastingMode _castShadows = ShadowCastingMode.On;
 
         [BoxGroup("Configure MeshRenderer Settings")]
         [LabelText("Receive Global Illumination")]
-        [SerializeField]
-        private ReceiveGI _receiveGI = ReceiveGI.Lightmaps;
+        [SerializeField] private ReceiveGI _receiveGI = ReceiveGI.Lightmaps;
 
         [BoxGroup("Configure MeshRenderer Settings")]
         [LabelText("Contribute Global Illumination")]
-        [SerializeField]
-        private bool _contributeGI = true;
+        [SerializeField] private bool _contributeGI = true;
 
         [BoxGroup("Configure MeshRenderer Settings")]
         [LabelText("Light Probes")]
-        [SerializeField]
-        private LightProbeUsage _lightProbes = LightProbeUsage.BlendProbes;
+        [SerializeField] private LightProbeUsage _lightProbes = LightProbeUsage.BlendProbes;
 
         [BoxGroup("Configure MeshRenderer Settings")]
         [LabelText("Motion Vectors")]
-        [SerializeField]
-        private MotionVectorGenerationMode _motionVectors = MotionVectorGenerationMode.Object;
+        [SerializeField] private MotionVectorGenerationMode _motionVectors = MotionVectorGenerationMode.Object;
 
         [BoxGroup("Configure MeshRenderer Settings")]
         [LabelText("Dynamic Occlusion")]
-        [SerializeField]
-        private bool _dynamicOcclusion = true;
-        
+        [SerializeField] private bool _dynamicOcclusion = true;
+
         [BoxGroup("Configure MeshRenderer Settings")]
         [Button(ButtonSizes.Large)]
         [GUIColor(1f, 0.85f, 0.3f)]
@@ -180,14 +173,12 @@ namespace Code.Editors
         {
             if (_rootObject == null)
             {
-                Debug.LogError("<color=red>Assign a root object for MeshRenderer settings.</color>");
+                Debug.LogError("<color=red>Assign a Root Object.</color>");
                 return;
             }
 
             MeshRenderer[] renderers = _rootObject.GetComponentsInChildren<MeshRenderer>(true);
-            int count = 0;
-
-            foreach (MeshRenderer renderer in renderers)
+            foreach (var renderer in renderers)
             {
                 renderer.shadowCastingMode = _castShadows;
                 renderer.receiveGI = _receiveGI;
@@ -196,22 +187,20 @@ namespace Code.Editors
                 renderer.lightProbeUsage = _lightProbes;
                 renderer.receiveShadows = true;
                 renderer.gameObject.isStatic = _contributeGI;
-
-                count++;
             }
 
-            Debug.Log($"<color=green>Applied MeshRenderer settings to {count} objects under '{_rootObject.name}'.</color>");
+            Debug.Log($"<color=green>Updated settings for {renderers.Length} MeshRenderers under '{_rootObject.name}'.</color>");
         }
-        
+
+        // -------------------- Add Collider --------------------
+
         [BoxGroup("Add Collider To Meshes")]
         [LabelText("Collider Type")]
-        [SerializeField]
-        private ColliderType _colliderType;
+        [SerializeField] private ColliderType _colliderType;
 
         [BoxGroup("Add Collider To Meshes")]
         [LabelText("Remove Existing Colliders First")]
-        [SerializeField]
-        private bool _removeExistingColliders = true;
+        [SerializeField] private bool _removeExistingColliders = true;
 
         [BoxGroup("Add Collider To Meshes")]
         [Button(ButtonSizes.Large)]
@@ -220,12 +209,12 @@ namespace Code.Editors
         {
             if (_rootObject == null)
             {
-                Debug.LogError("<color=red>Assign a root object first.</color>");
+                Debug.LogError("<color=red>Assign a Root Object.</color>");
                 return;
             }
 
-            int count = 0;
             MeshFilter[] meshFilters = _rootObject.GetComponentsInChildren<MeshFilter>(true);
+            int count = 0;
 
             foreach (MeshFilter meshFilter in meshFilters)
             {
@@ -233,40 +222,39 @@ namespace Code.Editors
 
                 if (_removeExistingColliders)
                 {
-                    Collider[] colliders = gameObject.GetComponents<Collider>();
-                    foreach (Collider collider in colliders)
-                    {
-                        DestroyImmediate(collider);   
-                    }
+                    foreach (var collider in gameObject.GetComponents<Collider>())
+                        DestroyImmediate(collider);
                 }
 
-                switch (_colliderType)
-                {
-                    case ColliderType.Box:
-                        gameObject.AddComponent<BoxCollider>();
-                        break;
-                    case ColliderType.Sphere:
-                        gameObject.AddComponent<SphereCollider>();
-                        break;
-                    case ColliderType.Capsule:
-                        gameObject.AddComponent<CapsuleCollider>();
-                        break;
-                    case ColliderType.Mesh:
-                        var mc = gameObject.AddComponent<MeshCollider>();
-                        mc.sharedMesh = meshFilter.sharedMesh;
-                        mc.convex = false;
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-
+                AddCollider(gameObject, meshFilter);
                 count++;
             }
 
-            Debug.Log($"<color=green>Added {_colliderType} to {count} mesh objects under '{_rootObject.name}'.</color>");
+            Debug.Log($"<color=green>Added {_colliderType} colliders to {count} objects under '{_rootObject.name}'.</color>");
+        }
+
+        private void AddCollider(GameObject go, MeshFilter mf)
+        {
+            switch (_colliderType)
+            {
+                case ColliderType.Box:
+                    go.AddComponent<BoxCollider>();
+                    break;
+                case ColliderType.Sphere:
+                    go.AddComponent<SphereCollider>();
+                    break;
+                case ColliderType.Capsule:
+                    go.AddComponent<CapsuleCollider>();
+                    break;
+                case ColliderType.Mesh:
+                    var mc = go.AddComponent<MeshCollider>();
+                    mc.sharedMesh = mf.sharedMesh;
+                    mc.convex = false;
+                    break;
+            }
         }
     }
-    
+
     public enum ColliderType
     {
         Box,
