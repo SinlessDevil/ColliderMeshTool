@@ -164,18 +164,25 @@ namespace Code.Editors.ColliderMeshCreator
         [Button(ButtonSizes.Large)]
         private void GenerateColliderFromManualDrawers()
         {
-            foreach (var drawer in _targetsManualOutlineDrawers)
+            List<Vector3> points = CollectManualWorldPoints();
+            if (points.Count < 3)
             {
-                if (drawer == null || drawer.Points == null || drawer.Points.Count < 3)
-                    continue;
-
-                var points = drawer.Points.Select(p => drawer.transform.TransformPoint(p)).ToList();
-                if (_smoothOutline)
-                    points = points.SmoothOutlineCatmullRom(_smoothSegments);
-
-                var mesh = GenerateExtrudedMesh(points);
-                CreateColliderContainer(drawer.name + "_Collider", mesh, drawer.transform.position);
+                Debug.LogWarning("Not enough points to create mesh.");
+                return;
             }
+            
+            Vector3 center = Vector3.zero;
+            foreach (var p in points)
+                center += p;
+            center /= points.Count;
+            
+            List<Vector3> localPoints = points.Select(p => p - center).ToList();
+
+            if (_smoothOutline)
+                localPoints = localPoints.SmoothOutlineCatmullRom(_smoothSegments);
+
+            Mesh mesh = GenerateExtrudedMesh(localPoints);
+            CreateColliderContainer("Manual_Collider", mesh, center);
         }
 
         private List<Vector3> CollectManualWorldPoints()
