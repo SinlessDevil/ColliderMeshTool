@@ -72,27 +72,34 @@ namespace Code.Editors.ColliderMeshCreator
         [Button(ButtonSizes.Large)]
         private void GenerateCollider()
         {
-            var worldPoints = MeshPointCollector.CollectWorldPoints(_targetMeshFilters);
+            List<Vector3> worldPoints = MeshPointCollector.CollectWorldPoints(_targetMeshFilters);
             if (worldPoints.Count == 0)
             {
                 Debug.LogError("No vertices found in the provided MeshFilters.");
                 return;
             }
 
-            var filteredPoints = YThresholdFilter.FilterTopPoints(worldPoints, _yThreshold);
-            var nodes = filteredPoints.Select((p, i) => new Node(p.x, p.z, i)).ToList();
+            List<Vector3> filteredPoints = YThresholdFilter.FilterTopPoints(worldPoints, _yThreshold);
+            List<Node> nodes = filteredPoints.Select((p, i) => new Node(p.x, p.z, i)).ToList();
 
             Hull.CleanUp();
             Hull.SetConvexHull(nodes);
-            var edges = Hull.SetConcaveHull(_concavity, _scaleFactor);
+            List<Line> edges = Hull.SetConcaveHull(_concavity, _scaleFactor);
 
-            var edgePoints = edges.BuildOutline();
+            List<Vector3> edgePoints = edges.BuildOutline();
             if (_smoothOutline)
                 edgePoints = edgePoints.SmoothOutlineCatmullRom(_smoothSegments);
-
-            var mesh = GenerateExtrudedMesh(edgePoints);
-            CreateColliderContainer("Generated_Collider", mesh);
+            
+            Vector3 center = Vector3.zero;
+            foreach (Vector3 point in edgePoints)
+                center += point;
+            center /= edgePoints.Count;
+            
+            List<Vector3> localPoints = edgePoints.Select(p => p - center).ToList();
+            Mesh mesh = GenerateExtrudedMesh(localPoints);
+            CreateColliderContainer("Generated_Collider", mesh, center);
         }
+
 
         // ---------------- Manual Outline ----------------
 
@@ -157,18 +164,18 @@ namespace Code.Editors.ColliderMeshCreator
         [Button(ButtonSizes.Large)]
         private void GenerateColliderFromManualDrawers()
         {
-            var points = CollectManualWorldPoints();
-            if (points.Count < 3)
+            foreach (var drawer in _targetsManualOutlineDrawers)
             {
-                Debug.LogWarning("Not enough points to create mesh.");
-                return;
+                if (drawer == null || drawer.Points == null || drawer.Points.Count < 3)
+                    continue;
+
+                var points = drawer.Points.Select(p => drawer.transform.TransformPoint(p)).ToList();
+                if (_smoothOutline)
+                    points = points.SmoothOutlineCatmullRom(_smoothSegments);
+
+                var mesh = GenerateExtrudedMesh(points);
+                CreateColliderContainer(drawer.name + "_Collider", mesh, drawer.transform.position);
             }
-
-            if (_smoothOutline)
-                points = points.SmoothOutlineCatmullRom(_smoothSegments);
-
-            var mesh = GenerateExtrudedMesh(points);
-            CreateColliderContainer("Manual_Collider", mesh);
         }
 
         private List<Vector3> CollectManualWorldPoints()
@@ -179,10 +186,10 @@ namespace Code.Editors.ColliderMeshCreator
                 .ToList();
         }
 
-        private void CreateColliderContainer(string name, Mesh mesh)
+        private void CreateColliderContainer(string name, Mesh mesh, Vector3 position)
         {
             var go = new GameObject(name);
-            go.transform.position = Vector3.zero;
+            go.transform.position = position;
             go.transform.rotation = Quaternion.identity;
 
             go.AddComponent<MeshFilter>().sharedMesh = mesh;
