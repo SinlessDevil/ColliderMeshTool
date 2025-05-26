@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Sirenix.OdinInspector;
 using Sirenix.OdinInspector.Editor;
@@ -5,6 +6,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Serialization;
+using Random = UnityEngine.Random;
 
 namespace Code.Editors
 {
@@ -104,7 +106,7 @@ namespace Code.Editors
             MeshFilter[] meshFilters = _rootObject.GetComponentsInChildren<MeshFilter>(true);
             SkinnedMeshRenderer[] skinnedMeshes = _rootObject.GetComponentsInChildren<SkinnedMeshRenderer>(true);
 
-            foreach (var meshFilter in meshFilters)
+            foreach (MeshFilter meshFilter in meshFilters)
             {
                 if (meshFilter.sharedMesh == null || !meshFilter.sharedMesh.name.Contains(_meshNameContains)) 
                     continue;
@@ -117,7 +119,7 @@ namespace Code.Editors
                 count++;
             }
 
-            foreach (var skinnedMeshRenderer in skinnedMeshes)
+            foreach (SkinnedMeshRenderer skinnedMeshRenderer in skinnedMeshes)
             {
                 if (skinnedMeshRenderer.sharedMesh == null || 
                     !skinnedMeshRenderer.sharedMesh.name.Contains(_meshNameContains)) 
@@ -185,7 +187,7 @@ namespace Code.Editors
             MeshRenderer[] renderers = _rootObject.GetComponentsInChildren<MeshRenderer>(true);
             int count = 0;
 
-            foreach (var renderer in renderers)
+            foreach (MeshRenderer renderer in renderers)
             {
                 renderer.shadowCastingMode = _castShadows;
                 renderer.receiveGI = _receiveGI;
@@ -200,5 +202,76 @@ namespace Code.Editors
 
             Debug.Log($"<color=green>Applied MeshRenderer settings to {count} objects under '{_rootObject.name}'.</color>");
         }
+        
+        [BoxGroup("Add Collider To Meshes")]
+        [LabelText("Collider Type")]
+        [SerializeField]
+        private ColliderType _colliderType;
+
+        [BoxGroup("Add Collider To Meshes")]
+        [LabelText("Remove Existing Colliders First")]
+        [SerializeField]
+        private bool _removeExistingColliders = true;
+
+        [BoxGroup("Add Collider To Meshes")]
+        [Button(ButtonSizes.Large)]
+        [GUIColor(1f, 0.5f, 0.5f)]
+        private void AddCollidersToMeshes()
+        {
+            if (_rootObject == null)
+            {
+                Debug.LogError("<color=red>Assign a root object first.</color>");
+                return;
+            }
+
+            int count = 0;
+            MeshFilter[] meshFilters = _rootObject.GetComponentsInChildren<MeshFilter>(true);
+
+            foreach (MeshFilter meshFilter in meshFilters)
+            {
+                GameObject gameObject = meshFilter.gameObject;
+
+                if (_removeExistingColliders)
+                {
+                    Collider[] colliders = gameObject.GetComponents<Collider>();
+                    foreach (Collider collider in colliders)
+                    {
+                        DestroyImmediate(collider);   
+                    }
+                }
+
+                switch (_colliderType)
+                {
+                    case ColliderType.Box:
+                        gameObject.AddComponent<BoxCollider>();
+                        break;
+                    case ColliderType.Sphere:
+                        gameObject.AddComponent<SphereCollider>();
+                        break;
+                    case ColliderType.Capsule:
+                        gameObject.AddComponent<CapsuleCollider>();
+                        break;
+                    case ColliderType.Mesh:
+                        var mc = gameObject.AddComponent<MeshCollider>();
+                        mc.sharedMesh = meshFilter.sharedMesh;
+                        mc.convex = false;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+
+                count++;
+            }
+
+            Debug.Log($"<color=green>Added {_colliderType} to {count} mesh objects under '{_rootObject.name}'.</color>");
+        }
+    }
+    
+    public enum ColliderType
+    {
+        Box,
+        Sphere,
+        Capsule,
+        Mesh
     }
 }
