@@ -55,7 +55,8 @@ Efficient tool for setting up renderers and materials across prefabs and scene o
   - Light probe usage
   - Global illumination
   - Motion vectors and more
-![prefab-editor](https://github.com/user-attachments/assets/b2c48312-dabe-4191-9e40-ac59bf64b620) 
+![prefab-editor](https://github.com/user-attachments/assets/4fa7d16a-4f0a-4d0b-a4b3-8ea4e2391500)
+
 ---
 👉 [View Release PrefabSetupEditor](https://github.com/SinlessDevil/ColliderMeshTool/releases/tag/prefab-setup-editor-v1.0.0)
 
