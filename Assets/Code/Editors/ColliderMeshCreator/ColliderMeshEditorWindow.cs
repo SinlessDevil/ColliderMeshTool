@@ -47,6 +47,11 @@ namespace Code.Editors.ColliderMeshCreator
         [SerializeField, LabelText("Flip Face Direction")]
         private bool _flipFaces = false;
         
+        [BoxGroup("Mesh Generation Settings")]
+        [GUIColor(0.7f, 0.9f, 1f)]
+        [SerializeField, LabelText("Cap Top & Bottom")]
+        private bool _capTopBottom = false;
+        
         [BoxGroup("Collider Mesh Generation")]
         [SerializeField, LabelText("Target Mesh Filters")]
         private List<MeshFilter> _targetMeshFilters = new();
@@ -207,7 +212,7 @@ namespace Code.Editors.ColliderMeshCreator
         {
             List<Vector3> verts = new();
             List<int> tris = new();
-
+            
             for (int i = 0; i < path.Count; i++)
             {
                 Vector3 baseA = path[i] + Vector3.up * _yOffset;
@@ -232,12 +237,40 @@ namespace Code.Editors.ColliderMeshCreator
                     tris.AddRange(new[] { start + 2, start + 3, start + 1 });
                 }
             }
+            
+            if (_capTopBottom)
+            {
+                GenerateCap(path, verts, tris, Vector3.up * _yOffset, flip: _flipFaces);                              // Top
+                GenerateCap(path, verts, tris, Vector3.up * (_yOffset - _extrusion), flip: !_flipFaces);             // Bottom
+            }
 
             Mesh mesh = new() { name = "ColliderMesh" };
             mesh.SetVertices(verts);
             mesh.SetTriangles(tris, 0);
             mesh.RecalculateNormals();
             return mesh;
+        }
+        
+        private void GenerateCap(List<Vector3> path, List<Vector3> verts, List<int> tris, Vector3 offset, bool flip = false)
+        {
+            int startIndex = verts.Count;
+            verts.AddRange(path.Select(p => p + offset));
+
+            for (int i = 1; i < path.Count - 1; i++)
+            {
+                if (flip)
+                {
+                    tris.Add(startIndex);
+                    tris.Add(startIndex + i + 1);
+                    tris.Add(startIndex + i);
+                }
+                else
+                {
+                    tris.Add(startIndex);
+                    tris.Add(startIndex + i);
+                    tris.Add(startIndex + i + 1);
+                }
+            }
         }
     }
 }
