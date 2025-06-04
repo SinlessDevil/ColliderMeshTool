@@ -19,6 +19,21 @@ Editor window for generating custom MeshColliders:
 **Editor Window:**  
 `Tools > Collider Mesh Generator Editor Window`
 
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=ZrX0ZoAVDn0" target="_blank">
+    <img src="https://img.youtube.com/vi/ZrX0ZoAVDn0/0.jpg" alt="Watch the demo" />
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=ZrX0ZoAVDn0" target="_blank">
+    <img src="https://img.shields.io/badge/Watch%20on-YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="Watch on YouTube" />
+  </a>
+</p>
+
+
+## 📽️ Videos
+
 https://github.com/user-attachments/assets/e4840d39-c845-424d-ace3-f5f83c73e188
 
 https://github.com/user-attachments/assets/662e35fc-51b7-4b02-90de-df26595698be
