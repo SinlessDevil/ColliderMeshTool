@@ -44,9 +44,10 @@ https://github.com/user-attachments/assets/662e35fc-51b7-4b02-90de-df26595698be
 | Add point         | `Q`      |
 | Remove point      | `E`      |
 | Open editor       | `Tools > Collider Mesh Generator` |
----
+
 👉 [View Release Collider Mesh Tool](https://github.com/SinlessDevil/ColliderMeshTool/releases/tag/collider-mesh-creator-v1.0.0)
 
+---
 ### 📦 ConcaveHull v1.0.0 — Geometry API
 Lightweight runtime plugin for generating 2D concave hulls on the XZ plane.
 **API:**
@@ -57,9 +58,10 @@ Lightweight runtime plugin for generating 2D concave hulls on the XZ plane.
 - `Node` – 2D point with ID
 - `Line` – connection between two Nodes
 ![hull-example](https://github.com/user-attachments/assets/52d27373-eabb-400f-a69f-d03cb41d4327)  
----
+
 👉 [View Release ConcaveHull ](https://github.com/SinlessDevil/ColliderMeshTool/releases/tag/concave-hull-v1.0.0)
 
+---
 ### 📦 PrefabSetupEditor v1.0.0
 Efficient tool for setting up renderers and materials across prefabs and scene objects.
 **Features:**
@@ -72,9 +74,9 @@ Efficient tool for setting up renderers and materials across prefabs and scene o
   - Motion vectors and more
 ![prefab-editor](https://github.com/user-attachments/assets/4fa7d16a-4f0a-4d0b-a4b3-8ea4e2391500)
 
----
 👉 [View Release PrefabSetupEditor](https://github.com/SinlessDevil/ColliderMeshTool/releases/tag/prefab-setup-editor-v1.0.0)
 
+---
 ## 🧰 Requirements
 - Unity **2023.3+**
 - [Odin Inspector](https://odininspector.com/) (Required)
