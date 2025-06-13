@@ -31,7 +31,6 @@ Editor window for generating custom MeshColliders:
   </a>
 </p>
 
-
 ## 📽️ Videos
 
 https://github.com/user-attachments/assets/e4840d39-c845-424d-ace3-f5f83c73e188
